@@ -84,7 +84,7 @@ def create_ui():
 					lines=3,
 				)
 				model = gr.Dropdown(
-					choices=['gpt-4', 'gpt-3.5-turbo'], label='Model', value='gpt-4'
+					choices=['gpt-4o'], label='Model', value='gpt-4o'
 				)
 				headless = gr.Checkbox(label='Run Headless', value=True)
 				submit_btn = gr.Button('Run Task')
