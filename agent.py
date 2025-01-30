@@ -18,7 +18,7 @@ async def authenticate_user():
     input("I can't login to this website, please login to the website and press enter to continue: ")
     return ActionResult(extracted_content='User logged in to website. Continue with task.')
 
-async def run_agent(task, num_agents):
+async def run_agent(task):
     agent = Agent(
         task=task,
         llm=ChatOpenAI(model="gpt-4o"),
@@ -29,15 +29,18 @@ async def run_agent(task, num_agents):
 
 async def enrich_lead(email: str, num_agents: int):
     crm_task = f"""
-    You are an advanced AI research agent specializing in lead enrichment for RunPod, a GPU cloud provider. Your task is to gather detailed, up-to-date information about a given lead based on their current lead information, such as email address or name. 
+    You are an advanced AI research agent specializing in lead enrichment for RunPod, a GPU cloud provider.
+    Your task is to gather detailed, up-to-date information about a given lead based on their current lead information, such as email address or name. 
     Put a focus on potential customers in AI, machine learning, and cloud computing. 
-    Use reliable online sources, company websites, LinkedIn, and industry-specific databases to find relevant details. 
     Prioritize leads working in generative AI, deep learning, LLM training, and high-performance computing (HPC). 
+    Use reliable online sources, company websites, LinkedIn, and industry-specific databases to find relevant details. 
     Retrieve the following attributes:
     Basic Lead Information
     Full Name (if not provided)
-    Job Title & Role (especially CTOs, ML Engineers, AI Researchers, Founders)
-    Company Name & Industry (prioritize AI startups, cloud computing, and HPC-related companies)
+    Job Title & Role 
+    (especially CTOs, ML Engineers, AI Researchers, Founders)
+    Company Name & Industry 
+    (prioritize AI startups, cloud computing, and HPC-related companies)
     Company Size & Revenue (if available)
     LinkedIn Profile URL
     Company Website & Social Media Links
@@ -71,7 +74,7 @@ Current Lead Information:
     approaches = ApproachesOutput(approaches=response.approaches)
     print("Approaches: ", approaches)
     
-    agent_tasks = [run_agent(f"task: {crm_task}\napproach: {approach}\nCurrent Lead Information: {email}", num_agents) for approach in approaches.approaches]
+    agent_tasks = [run_agent(f"task: {crm_task}\napproach: {approach}\nCurrent Lead Information: {email}") for approach in approaches.approaches]
 
     results = await asyncio.gather(*agent_tasks[:num_agents])
 
@@ -104,20 +107,15 @@ def create_ui():
             with gr.Column():
                 result_output = gr.JSON(label='Result Output')
                 summary_output = gr.JSON(label='Summary Output')
-                agent_history_image = gr.Image(value="agent_history.gif", label="Agent History", visible=False)
 
         def run_task(email, num_agents):
             results = asyncio.run(enrich_lead(email, int(num_agents)))
-            # Check if result_output exists and update visibility
-            if results['results']:
-                return results['results'], results['summary'], gr.update(visible=True)
-            else:
-                return results['results'], results['summary'], gr.update(visible=False)
+            return results['results'], results['summary']
 
         submit_btn.click(
             fn=run_task,
             inputs=[email, num_agents],
-            outputs=[result_output, summary_output, agent_history_image],
+            outputs=[result_output, summary_output],
         )
 
     return interface
