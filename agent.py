@@ -57,6 +57,7 @@ async def enrich_lead(email: str, num_agents: int):
 Current Lead Information:
 {email}
 """
+    print("lead info: ", email)
 
     structured_llm = ChatOpenAI(model="gpt-4o-mini").with_structured_output(ApproachesOutput)
     response = structured_llm.invoke(
