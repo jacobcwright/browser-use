@@ -131,6 +131,8 @@ env.bak/
 venv.bak/
 test_env/
 browser/
+browser/bin/
+browser/*
 
 
 

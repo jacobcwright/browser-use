@@ -11,18 +11,18 @@ import json
 class ApproachesOutput(BaseModel):
     approaches: List[str]
 
-controller = Controller()
+# controller = Controller()
 
-@controller.registry.action('Have user login to any website')
-async def authenticate_user():
-    input("I can't login to this website, please login to the website and press enter to continue: ")
-    return ActionResult(extracted_content='User logged in to website. Continue with task.')
+# @controller.registry.action('Have user login to any website')
+# async def authenticate_user():
+#     input("I can't login to this website, please login to the website and press enter to continue: ")
+#     return ActionResult(extracted_content='User logged in to website. Continue with task.')
 
 async def run_agent(task):
     agent = Agent(
         task=task,
         llm=ChatOpenAI(model="gpt-4o"),
-        controller=controller,
+        # controller=controller,
     )
     result = await agent.run(100)
     return result.final_result()

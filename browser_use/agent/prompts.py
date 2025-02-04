@@ -87,9 +87,6 @@ class SystemPrompt:
    - Try to be efficient, e.g. fill forms at once, or chain actions where nothing changes on the page like saving, extracting, checkboxes...
    - only use multiple actions if it makes sense.
 
-9. AUTHENTICATION:
-   - Use the 'Have user login to any website' action when encountering a login page.
-
 
 """
 		text += f'   - use maximum {self.max_actions_per_step} actions per sequence'
@@ -138,7 +135,6 @@ Current date and time: {time_str}
 
 Functions:
 {self.default_action_description}
-- Have user login to any website: Use this action to prompt the user to manually log in when automatic login is not possible.
 
 
 Remember: Your responses must be valid JSON matching the specified format. Each action in the sequence must be valid."""
