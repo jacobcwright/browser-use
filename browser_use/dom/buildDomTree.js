@@ -137,6 +137,11 @@
 
     // Helper function to check if element is interactive
     function isInteractiveElement(element) {
+        // Immediately return false for body tag
+        if (element.tagName.toLowerCase() === 'body') {
+            return false;
+        }
+
         // Base interactive elements and roles
         const interactiveElements = new Set([
             'a', 'button', 'details', 'embed', 'input', 'label',
@@ -164,7 +169,7 @@
             interactiveElements.has(tagName) ||
             interactiveRoles.has(role) ||
             interactiveRoles.has(ariaRole) ||
-            (tabIndex !== null && tabIndex !== '-1') ||
+            (tabIndex !== null && tabIndex !== '-1' && element.parentElement?.tagName.toLowerCase() !== 'body') ||
             element.getAttribute('data-action') === 'a-dropdown-select' ||
             element.getAttribute('data-action') === 'a-dropdown-button';
 
@@ -240,13 +245,17 @@
         const isDraggable = element.draggable ||
             element.getAttribute('draggable') === 'true';
 
+        // Additional check to prevent body from being marked as interactive
+        if (element.tagName.toLowerCase() === 'body' || element.parentElement?.tagName.toLowerCase() === 'body') {
+            return false;
+        }
+
         return hasAriaProps ||
             // hasClickStyling ||
             hasClickHandler ||
             hasClickListeners ||
             // isFormRelated ||
             isDraggable;
-
     }
 
     // Helper function to check if element is visible
@@ -396,6 +405,73 @@
             xpath: node.nodeType === Node.ELEMENT_NODE ? getXPathTree(node, true) : null,
             children: [],
         };
+
+        // Add coordinates for element nodes
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const rect = node.getBoundingClientRect();
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+            
+            // Viewport-relative coordinates (can be negative when scrolled)
+            nodeData.viewportCoordinates = {
+                topLeft: {
+                    x: Math.round(rect.left),
+                    y: Math.round(rect.top)
+                },
+                topRight: {
+                    x: Math.round(rect.right),
+                    y: Math.round(rect.top)
+                },
+                bottomLeft: {
+                    x: Math.round(rect.left),
+                    y: Math.round(rect.bottom)
+                },
+                bottomRight: {
+                    x: Math.round(rect.right),
+                    y: Math.round(rect.bottom)
+                },
+                center: {
+                    x: Math.round(rect.left + rect.width/2),
+                    y: Math.round(rect.top + rect.height/2)
+                },
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+            };
+            
+            // Page-relative coordinates (always positive, relative to page origin)
+            nodeData.pageCoordinates = {
+                topLeft: {
+                    x: Math.round(rect.left + scrollX),
+                    y: Math.round(rect.top + scrollY)
+                },
+                topRight: {
+                    x: Math.round(rect.right + scrollX),
+                    y: Math.round(rect.top + scrollY)
+                },
+                bottomLeft: {
+                    x: Math.round(rect.left + scrollX),
+                    y: Math.round(rect.bottom + scrollY)
+                },
+                bottomRight: {
+                    x: Math.round(rect.right + scrollX),
+                    y: Math.round(rect.bottom + scrollY)
+                },
+                center: {
+                    x: Math.round(rect.left + rect.width/2 + scrollX),
+                    y: Math.round(rect.top + rect.height/2 + scrollY)
+                },
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+            };
+
+            // Add viewport and scroll information
+            nodeData.viewport = {
+                scrollX: Math.round(scrollX),
+                scrollY: Math.round(scrollY),
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+        }
 
         // Copy all attributes if the node is an element
         if (node.nodeType === Node.ELEMENT_NODE && node.attributes) {

@@ -12,6 +12,7 @@
 [![Cloud](https://img.shields.io/badge/Cloud-☁️-blue)](https://cloud.browser-use.com)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Gregor?style=social)](https://x.com/gregpr07)
 [![Twitter Follow](https://img.shields.io/twitter/follow/Magnus?style=social)](https://x.com/mamagnus00)
+[![Weave Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Fapp.workweave.ai%2Fapi%2Frepository%2Fbadge%2Forg_T5Pvn3UBswTHIsN1dWS3voPg%2F881458615&labelColor=#EC6341)](https://app.workweave.ai/reports/repository/org_T5Pvn3UBswTHIsN1dWS3voPg/881458615)
 
 
 🌐 Browser-use is the easiest way to connect your AI agents with the browser. 
@@ -146,11 +147,12 @@ We are forming a commission to define best practices for UI/UX design for browse
 Together, we're exploring how software redesign improves the performance of AI agents and gives these companies a competitive advantage by designing their existing software to be at the forefront of the agent age.
 
 Email [Toby](mailto:tbiddle@loop11.com?subject=I%20want%20to%20join%20the%20UI/UX%20commission%20for%20AI%20agents&body=Hi%20Toby%2C%0A%0AI%20found%20you%20in%20the%20browser-use%20GitHub%20README.%0A%0A) to apply for a seat on the committee.
-
 ## Citation
 
 If you use Browser Use in your research or project, please cite:
 
+
+    
 ```bibtex
 @software{browser_use2024,
   author = {Müller, Magnus and Žunič, Gregor},
@@ -160,11 +162,20 @@ If you use Browser Use in your research or project, please cite:
   url = {https://github.com/browser-use/browser-use}
 }
 ```
+ 
 
----
+
+ <div align="center"> <img src="https://github.com/user-attachments/assets/402b2129-b6ac-44d3-a217-01aea3277dce" width="400"/> 
+ 
+[![Twitter Follow](https://img.shields.io/twitter/follow/Gregor?style=social)](https://x.com/gregpr07)
+[![Twitter Follow](https://img.shields.io/twitter/follow/Magnus?style=social)](https://x.com/mamagnus00)
+ 
+ </div> 
 
 <div align="center">
-  Made with ❤️ in Zurich and San Francisco
-</div>
+Made with ❤️ in Zurich and San Francisco
+ </div> 
+
+
 
 

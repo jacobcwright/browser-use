@@ -35,13 +35,17 @@
     "name": "Join Discord",
     "url": "https://link.browser-use.com/discord"
   },
+  "tabs": [
+    {
+      "name": "Cloud API",
+      "url": "cloud",
+      "openapi": "https://api.browser-use.com/openapi.json"
+    }
+  ],
   "navigation": [
     {
       "group": "Get Started",
-      "pages": [
-        "introduction",
-        "quickstart"
-      ]
+      "pages": ["introduction", "quickstart"]
     },
     {
       "group": "Customize",
@@ -52,6 +56,7 @@
         "customize/real-browser",
         "customize/output-format",
         "customize/system-prompt",
+        "customize/sensitive-data",
         "customize/custom-functions"
       ]
     },
@@ -60,8 +65,13 @@
       "pages": [
         "development/local-setup",
         "development/telemetry",
+        "development/observability",
         "development/roadmap"
       ]
+    },
+    {
+      "group": "Cloud API",
+      "pages": ["cloud/quickstart", "cloud/implementation"]
     }
   ],
   "footerSocials": {
