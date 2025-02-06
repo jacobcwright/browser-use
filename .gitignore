@@ -180,3 +180,7 @@ AgentHistoryList.json
 gcp-login.json
 .vscode
 .ruff_cache
+.idea
+*.txt
+*.pdf
+*.csv

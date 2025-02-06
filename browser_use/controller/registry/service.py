@@ -1,7 +1,8 @@
 import asyncio
 from inspect import iscoroutinefunction, signature
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Dict, Optional, Type
 
+from langchain_core.language_models.chat_models import BaseChatModel
 from pydantic import BaseModel, Field, create_model
 
 from browser_use.browser.context import BrowserContext
@@ -31,7 +32,7 @@ class Registry:
 		params = {
 			name: (param.annotation, ... if param.default == param.empty else param.default)
 			for name, param in sig.parameters.items()
-			if name != 'browser'
+			if name != 'browser' and name != 'page_extraction_llm' and name != 'available_file_paths'
 		}
 		# TODO: make the types here work
 		return create_model(
@@ -44,7 +45,6 @@ class Registry:
 		self,
 		description: str,
 		param_model: Optional[Type[BaseModel]] = None,
-		requires_browser: bool = False,
 	):
 		"""Decorator for registering actions"""
 
@@ -75,14 +75,21 @@ class Registry:
 				description=description,
 				function=wrapped_func,
 				param_model=actual_param_model,
-				requires_browser=requires_browser,
 			)
 			self.registry.actions[func.__name__] = action
 			return func
 
 		return decorator
 
-	async def execute_action(self, action_name: str, params: dict, browser: Optional[BrowserContext] = None) -> Any:
+	async def execute_action(
+		self,
+		action_name: str,
+		params: dict,
+		browser: Optional[BrowserContext] = None,
+		page_extraction_llm: Optional[BaseChatModel] = None,
+		sensitive_data: Optional[Dict[str, str]] = None,
+		available_file_paths: Optional[list[str]] = None,
+	) -> Any:
 		"""Execute a registered action"""
 		if action_name not in self.registry.actions:
 			raise ValueError(f'Action {action_name} not found')
@@ -96,23 +103,56 @@ class Registry:
 			sig = signature(action.function)
 			parameters = list(sig.parameters.values())
 			is_pydantic = parameters and issubclass(parameters[0].annotation, BaseModel)
+			parameter_names = [param.name for param in parameters]
 
+			if sensitive_data:
+				validated_params = self._replace_sensitive_data(validated_params, sensitive_data)
+
+			if 'browser' in parameter_names and not browser:
+				raise ValueError(f'Action {action_name} requires browser but none provided.')
+			if 'page_extraction_llm' in parameter_names and not page_extraction_llm:
+				raise ValueError(f'Action {action_name} requires page_extraction_llm but none provided.')
+			if 'available_file_paths' in parameter_names and not available_file_paths:
+				raise ValueError(f'Action {action_name} requires available_file_paths but none provided.')
 			# Prepare arguments based on parameter type
-			if action.requires_browser:
-				if not browser:
-					raise ValueError(
-						f'Action {action_name} requires browser but none provided. This has to be used in combination of `requires_browser=True` when registering the action.'
-					)
-				if is_pydantic:
-					return await action.function(validated_params, browser=browser)
-				return await action.function(**validated_params.model_dump(), browser=browser)
-
+			extra_args = {}
+			if 'browser' in parameter_names:
+				extra_args['browser'] = browser
+			if 'page_extraction_llm' in parameter_names:
+				extra_args['page_extraction_llm'] = page_extraction_llm
+			if 'available_file_paths' in parameter_names:
+				extra_args['available_file_paths'] = available_file_paths
 			if is_pydantic:
-				return await action.function(validated_params)
-			return await action.function(**validated_params.model_dump())
+				return await action.function(validated_params, **extra_args)
+			return await action.function(**validated_params.model_dump(), **extra_args)
 
 		except Exception as e:
 			raise RuntimeError(f'Error executing action {action_name}: {str(e)}') from e
+
+	def _replace_sensitive_data(self, params: BaseModel, sensitive_data: Dict[str, str]) -> BaseModel:
+		"""Replaces the sensitive data in the params"""
+		# if there are any str with <secret>placeholder</secret> in the params, replace them with the actual value from sensitive_data
+
+		import re
+
+		secret_pattern = re.compile(r'<secret>(.*?)</secret>')
+
+		def replace_secrets(value):
+			if isinstance(value, str):
+				matches = secret_pattern.findall(value)
+				for placeholder in matches:
+					if placeholder in sensitive_data:
+						value = value.replace(f'<secret>{placeholder}</secret>', sensitive_data[placeholder])
+				return value
+			elif isinstance(value, dict):
+				return {k: replace_secrets(v) for k, v in value.items()}
+			elif isinstance(value, list):
+				return [replace_secrets(v) for v in value]
+			return value
+
+		for key, value in params.model_dump().items():
+			params.__dict__[key] = replace_secrets(value)
+		return params
 
 	def create_action_model(self) -> Type[ActionModel]:
 		"""Creates a Pydantic model from registered actions"""
