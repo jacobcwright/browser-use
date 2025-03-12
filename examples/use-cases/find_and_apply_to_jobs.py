@@ -1,34 +1,35 @@
 """
-Find and apply to jobs.
+Goal: Searches for job listings, evaluates relevance based on a CV, and applies 
 
 @dev You need to add OPENAI_API_KEY to your environment variables.
-
 Also you have to install PyPDF2 to read pdf files: pip install PyPDF2
 """
 
 import csv
 import os
-import re
 import sys
 from pathlib import Path
-
-from PyPDF2 import PdfReader
-
-from browser_use.browser.browser import Browser, BrowserConfig
+import logging
+from typing import List, Optional
+import asyncio
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import asyncio
-from typing import List, Optional
 
 from dotenv import load_dotenv
+from PyPDF2 import PdfReader
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from pydantic import BaseModel, SecretStr
 
 from browser_use import ActionResult, Agent, Controller
 from browser_use.browser.context import BrowserContext
+from browser_use.browser.browser import Browser, BrowserConfig
 
+# Validate required environment variables
 load_dotenv()
-import logging
+required_env_vars = ["AZURE_OPENAI_KEY", "AZURE_OPENAI_ENDPOINT"]
+for var in required_env_vars:
+    if not os.getenv(var):
+        raise ValueError(f"{var} is not set. Please add it to your environment variables.")
 
 logger = logging.getLogger(__name__)
 # full screen mode
@@ -77,7 +78,6 @@ def read_cv():
 
 @controller.action(
 	'Upload cv to element - call this function to upload if element is not found, try with different index of the same upload element',
-	requires_browser=True,
 )
 async def upload_cv(index: int, browser: BrowserContext):
 	path = str(CV.absolute())
@@ -100,7 +100,7 @@ async def upload_cv(index: int, browser: BrowserContext):
 
 	try:
 		await file_upload_el.set_input_files(path)
-		msg = f'Successfully uploaded file to index {index}'
+		msg = f'Successfully uploaded file "{path}" to index {index}'
 		logger.info(msg)
 		return ActionResult(extracted_content=msg)
 	except Exception as e:
@@ -156,5 +156,5 @@ async def main():
 	await asyncio.gather(*[agent.run() for agent in agents])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	asyncio.run(main())
